@@ -42,7 +42,7 @@ Este proyecto se está construyendo por etapas como parte de mi formación en In
 - [x] Configuración del repositorio
 - [x] Estructura de carpetas
 - [x] Interfaz HTML
-- [.] Estilos CSS y semáforo visual (En progreso - body y form listos)
+- [ ] Estilos CSS y semáforo visual (En progreso - body y form listos)
 - [ ] Lógica de frontend con JavaScript
 - [ ] Backend con FastAPI
 - [ ] Integración con base de datos SQLite
