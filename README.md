@@ -40,9 +40,9 @@ Los negocios chicos suelen llevar el control de precios de proveedores en planil
 Este proyecto se está construyendo por etapas como parte de mi formación en Ingeniería en Sistemas (UTN Córdoba) y como Desarrollador Junior. El progreso actual:
 
 - [x] Configuración del repositorio
-- [ ] Estructura de carpetas
-- [ ] Interfaz HTML
-- [ ] Estilos CSS y semáforo visual
+- [x] Estructura de carpetas
+- [x] Interfaz HTML
+- [.] Estilos CSS y semáforo visual (En progreso - body y form listos)
 - [ ] Lógica de frontend con JavaScript
 - [ ] Backend con FastAPI
 - [ ] Integración con base de datos SQLite
