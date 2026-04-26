@@ -1,31 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/styles.css">
-    <title>$pyPrice</title>
-</head>
-
-<body>
-    <header>
-        <h1>$pyPrice</h1>
-        <p>Monitoreá los precios de los productos</p>
-    </header>
-    <section>
-        <form id="form-producto">
-            <input type="text" id="producto" placeholder="Nombre del Producto">
-            <input type="number" id="precio" placeholder="Precio Actual" step="100">
-            <button type="submit">Agregar Producto</button>
-        </form>
-    </section>
-    <section>
-        <h2>Productos Monitoreados</h2>
-        <ul id="lista-productos">
-            <!-- LUEGO SE MUESTRAN LOS PRODUCTOS AGREGADOS -->
-        </ul>
-    </section>
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpyPrice</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
