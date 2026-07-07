@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      SPYPRICE_DATABASE_URL: sqlite:////data/spyprice.db
+      SPYPRICE_CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173
+      SPYPRICE_ENABLE_SEED: "true"
+      SPYPRICE_SMTP_HOST: ${SPYPRICE_SMTP_HOST:-}
+      SPYPRICE_SMTP_PORT: ${SPYPRICE_SMTP_PORT:-587}
+      SPYPRICE_SMTP_USERNAME: ${SPYPRICE_SMTP_USERNAME:-}
+      SPYPRICE_SMTP_PASSWORD: ${SPYPRICE_SMTP_PASSWORD:-}
+      SPYPRICE_SMTP_FROM: ${SPYPRICE_SMTP_FROM:-}
+      SPYPRICE_SMTP_USE_TLS: ${SPYPRICE_SMTP_USE_TLS:-true}
+      SPYPRICE_ALERT_RECIPIENT: ${SPYPRICE_ALERT_RECIPIENT:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - spyprice_data:/data
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "4173:80"
+
+volumes:
+  spyprice_data:
