@@ -3,10 +3,30 @@
 Monitor de precios para proveedores pensado como proyecto de portfolio serio: carga de productos, historial real de precios, alertas visuales, stock bajo, backend en FastAPI y despliegue simple con Docker.
 
 ![Status](https://img.shields.io/badge/status-listo%20para%20portfolio-success)
+![Demo](https://img.shields.io/badge/demo-en%20vivo-ff6b35)
 ![React](https://img.shields.io/badge/frontend-react-blue)
 ![FastAPI](https://img.shields.io/badge/backend-fastapi-009688)
 ![SQLite](https://img.shields.io/badge/database-sqlite-0f6ab4)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+## Demo en vivo
+
+| Recurso | URL |
+|---|---|
+| **App (frontend)** | [spyprice-front.onrender.com](https://spyprice-front.onrender.com) |
+| **API (Swagger)** | [spyprice-back.onrender.com/docs](https://spyprice-back.onrender.com/docs) |
+| **Repositorio** | [github.com/gabibertero/SpyPrice](https://github.com/gabibertero/SpyPrice) |
+
+La demo corre en Render (plan free). La primera carga puede tardar ~30–60 s mientras despiertan los servicios; después responde normal.
+
+![Vista previa de SpyPrice](./frontend/public/preview-card.svg)
+
+**Qué probar en la demo**
+
+- revisar el tablero con productos de ejemplo y el semaforo de precios
+- filtrar por proveedor, categoria o estado
+- editar un producto o actualizar un precio y ver el historial
+- abrir el panel de atencion (aumentos, stock bajo, estables)
 
 ## Que hace
 
@@ -27,7 +47,7 @@ Monitor de precios para proveedores pensado como proyecto de portfolio serio: ca
 - Backend: FastAPI + SQLAlchemy
 - Base de datos: SQLite
 - Testing: Vitest + Pytest
-- Deploy: Docker + Docker Compose
+- Deploy: Docker + Docker Compose + Render
 
 ## Estado del proyecto
 
@@ -163,7 +183,23 @@ cd frontend
 npm test
 ```
 
-## Deploy con Docker
+## Deploy
+
+### Produccion (Render)
+
+| Servicio | URL |
+|---|---|
+| Frontend | `https://spyprice-front.onrender.com` |
+| Backend | `https://spyprice-back.onrender.com` |
+| Swagger | `https://spyprice-back.onrender.com/docs` |
+
+Variables clave en Render:
+
+- **Frontend**: `VITE_API_URL=https://spyprice-back.onrender.com`
+- **Backend**: `SPYPRICE_CORS_ORIGINS` debe incluir la URL del frontend
+- **Backend**: `SPYPRICE_ENABLE_SEED=true` para datos de demo
+
+### Local con Docker
 
 ```bash
 docker compose up --build
