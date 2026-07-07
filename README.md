@@ -1,296 +1,145 @@
-# SpyPrice - Monitor de precios para proveedores
+# SpyPrice
 
-> Aplicacion web para registrar precios de proveedores, detectar variaciones y mostrar alertas visuales antes de que impacten en el margen del negocio.
+Monitor de precios para proveedores pensado como proyecto de portfolio serio: carga de productos, historial real de precios, alertas visuales, stock bajo, backend en FastAPI y despliegue simple con Docker.
 
-![Status](https://img.shields.io/badge/status-en%20desarrollo-yellow)
+![Status](https://img.shields.io/badge/status-listo%20para%20portfolio-success)
 ![React](https://img.shields.io/badge/frontend-react-blue)
-![Python](https://img.shields.io/badge/python-3.11+-blue)
+![FastAPI](https://img.shields.io/badge/backend-fastapi-009688)
+![SQLite](https://img.shields.io/badge/database-sqlite-0f6ab4)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## Sobre el proyecto
+## Que hace
 
-SpyPrice apunta a comercios y PyMEs que necesitan seguir la evolucion de precios de sus insumos sin depender de planillas desactualizadas o controles manuales. La idea es cargar precios, detectar cambios rapidamente y usar un semaforo visual para priorizar que productos requieren atencion.
+- registra productos con proveedor, categoria, stock y ultima reposicion
+- calcula variacion de precio contra historial real
+- aplica un semaforo claro:
+  - `Estable`: el precio se mantuvo o bajo
+  - `Atencion`: el precio subio hasta 10 %
+  - `Critico`: el precio subio mas de 10 %
+- conserva historial de cada cambio de precio
+- permite editar datos del producto sin romper la trazabilidad del precio
+- muestra prioridades del dia: aumentos, stock bajo y productos para revisar
+- puede enviar un resumen por email si se configuran variables SMTP
 
-## Vision de portfolio
-
-Este proyecto no se va a construir como una practica mas. La meta es que SpyPrice sea una pieza de portfolio fuerte, profesional y creible, capaz de destacar frente a reclutadores, lideres tecnicos y empresas grandes.
-
-Eso significa que cada decision del proyecto deberia apuntar a estos criterios:
-
-- interfaz cuidada y visualmente profesional
-- codigo ordenado, entendible y mantenible
-- decisiones tecnicas que se puedan justificar en una entrevista
-- experiencia de usuario clara, solida y consistente
-- sensacion de producto real, no de ejercicio academico
-
-## Semaforo visual
-
-| Estado | Significado |
-| --- | --- |
-| Verde | El precio se mantuvo o bajo |
-| Amarillo | El precio subio hasta un 10 % |
-| Rojo | El precio subio mas de un 10 % |
-
-## Tecnologias
+## Stack
 
 - Frontend: React + Vite
-- Backend: Python 3.11+ + FastAPI
+- Backend: FastAPI + SQLAlchemy
 - Base de datos: SQLite
-- Alertas: SMTP
+- Testing: Vitest + Pytest
+- Deploy: Docker + Docker Compose
 
-## Como vamos a trabajar
+## Estado del proyecto
 
-La idea de este proyecto no es solo terminar una app funcional, sino usarla como camino de aprendizaje real. Vos vas a implementar cada parte y yo te voy a acompanar para:
+Todas las fases planteadas en el repo quedaron cubiertas en una version funcional y presentable:
 
-- desarmar cada etapa en pasos chicos y concretos
-- explicarte por que conviene hacer cada cosa
-- revisar decisiones, estructura y errores
-- proponerte mejoras y siguientes pasos
-- mantener el foco en calidad de portfolio, no solo en que funcione
-- escribir codigo solo cuando vos me lo pidas
+- `Fase 0-1`: estructura y UI base
+- `Fase 2`: validaciones, estados de carga/error/exito, filtros y logica del semaforo
+- `Fase 3-5`: modelo de datos, API, persistencia SQLite e historial de precios
+- `Fase 6-8`: integracion frontend/backend, reglas de negocio y reporte SMTP opcional
+- `Fase 9-11`: pulido visual, accesibilidad basica, tests, env vars, Docker y documentacion
 
-## Roadmap paso a paso
+## Estructura
 
-### Fase 0 - Base del proyecto
+```text
+SpyPrice/
+├─ backend/
+│  ├─ app/
+│  │  ├─ routers/
+│  │  ├─ services/
+│  │  ├─ database.py
+│  │  ├─ main.py
+│  │  ├─ migrations.py
+│  │  ├─ models.py
+│  │  ├─ schemas.py
+│  │  └─ settings.py
+│  ├─ tests/
+│  ├─ requirements.txt
+│  └─ Dockerfile
+├─ frontend/
+│  ├─ public/
+│  ├─ src/
+│  │  ├─ components/
+│  │  ├─ services/
+│  │  └─ utils/
+│  ├─ package.json
+│  └─ Dockerfile
+└─ docker-compose.yml
+```
 
-Objetivo: tener el repo ordenado, entender la estructura y dejar claro que hace cada carpeta.
+## Modelo de negocio
 
-Tareas:
+Cada producto guarda:
 
-- revisar la estructura general de `frontend` y `backend`
-- entender para que sirve cada archivo principal
-- definir una convencion simple de nombres
-- dejar el README como guia del proyecto
-- alinear desde el inicio el proyecto con un estandar profesional de portfolio
+- `supplier`
+- `name`
+- `category`
+- `current_price`
+- `stock`
+- `last_restock`
 
-Criterio de cierre:
+Cada actualizacion de precio genera un registro en `price_history`. El precio anterior no se guarda como campo aislado: se deriva del historial, que es lo que mantiene coherencia de negocio y hace defendible el diseno en entrevista.
 
-- sabes explicar la estructura del proyecto sin ayuda
-- el repo tiene un objetivo claro y una organizacion minima consistente
-- la vision del proyecto esta orientada a destacar profesionalmente
+## API principal
 
-### Fase 1 - Interfaz inicial en React
+### Productos
 
-Objetivo: construir una primera pantalla clara, usable y visualmente fuerte para portfolio.
+- `GET /api/products`
+- `POST /api/products`
+- `PUT /api/products/{product_id}`
+- `PATCH /api/products/{product_id}/price`
+- `DELETE /api/products/{product_id}`
+- `GET /api/products/{product_id}/history`
 
-Tareas:
+### Alertas
 
-- revisar como se divide la UI en componentes
-- mejorar formulario, lista y layout general
-- ordenar los estilos para que la interfaz se vea profesional
-- hacer que el semaforo visual se entienda de inmediato
-- evitar que la pantalla se sienta como una maqueta basica o escolar
+- `GET /api/alerts/summary`
+- `POST /api/alerts/send`
 
-Criterio de cierre:
+### Salud
 
-- se puede cargar un producto desde la interfaz
-- la lista se ve clara en desktop y mobile
-- cada componente tiene una responsabilidad facil de entender
-- la primera impresion visual transmite seriedad y criterio de diseno
+- `GET /api/health`
 
-### Fase 2 - Estado y logica del frontend
+La documentacion interactiva queda en `http://localhost:8000/docs`.
 
-Objetivo: dominar como se manejan los datos dentro de React antes de conectarlo al backend.
+## Variables de entorno
 
-Tareas:
+### Backend
 
-- entender `useState` y flujo de datos entre componentes
-- validar inputs del formulario
-- calcular correctamente la variacion de precio
-- mostrar estados utiles en pantalla: vacio, error, carga, exito
+Tomar como base [`backend/.env.example`](./backend/.env.example).
 
-Criterio de cierre:
+Variables mas importantes:
 
-- entendes de donde sale cada dato y quien lo modifica
-- la app responde bien a entradas validas e invalidas
-- la logica del frontend se siente prolija y predecible
+- `SPYPRICE_DATABASE_URL`
+- `SPYPRICE_CORS_ORIGINS`
+- `SPYPRICE_ENABLE_SEED`
+- `SPYPRICE_SMTP_HOST`
+- `SPYPRICE_SMTP_PORT`
+- `SPYPRICE_SMTP_USERNAME`
+- `SPYPRICE_SMTP_PASSWORD`
+- `SPYPRICE_SMTP_FROM`
+- `SPYPRICE_SMTP_USE_TLS`
+- `SPYPRICE_ALERT_RECIPIENT`
 
-### Fase 3 - Modelo de datos
+### Frontend
 
-Objetivo: definir bien que informacion guarda SpyPrice y como se relaciona.
+Tomar como base [`frontend/.env.example`](./frontend/.env.example).
 
-Tareas:
+- `VITE_API_URL`
 
-- decidir que datos tiene un producto
-- decidir si el historial de precios va en la misma tabla o separado
-- definir proveedor, producto, precio, fecha y alertas
-- pensar casos reales: productos repetidos, cambios de nombre, fechas faltantes
+## Desarrollo local
 
-Criterio de cierre:
+### Backend
 
-- tenes claro que entidades existen y que guarda cada una
-- el modelo de datos representa un caso real de negocio
-- podes justificar el diseño con criterio tecnico
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-### Fase 4 - Backend con FastAPI
-
-Objetivo: crear una API simple, clara y bien organizada.
-
-Tareas:
-
-- preparar la estructura inicial del backend
-- entender rutas, controladores, esquemas y servicios
-- crear endpoints para listar, crear, editar y eliminar productos
-- probar la API con una herramienta como Swagger o Postman
-
-Criterio de cierre:
-
-- podes explicar que hace cada endpoint
-- la API responde correctamente a operaciones basicas
-- la estructura del backend se ve profesional y mantenible
-
-### Fase 5 - Base de datos con SQLite
-
-Objetivo: persistir la informacion para que no se pierda al cerrar la app.
-
-Tareas:
-
-- conectar FastAPI con SQLite
-- crear tablas necesarias
-- guardar productos e historial de precios
-- consultar y actualizar datos desde la API
-
-Criterio de cierre:
-
-- los datos quedan guardados en la base
-- la app puede reiniciarse sin perder informacion
-- el modelo persistido refleja decisiones coherentes de negocio
-
-### Fase 6 - Conexion frontend + backend
-
-Objetivo: reemplazar los datos de prueba del frontend por datos reales de la API.
-
-Tareas:
-
-- consumir endpoints desde React
-- cargar productos al iniciar la app
-- enviar formularios al backend
-- sincronizar altas, bajas y ediciones sin romper la UI
-
-Criterio de cierre:
-
-- el frontend deja de depender de datos hardcodeados
-- las acciones del usuario impactan en la base real
-- la integracion se siente fluida y consistente
-
-### Fase 7 - Historial de precios
-
-Objetivo: convertir SpyPrice en una herramienta de seguimiento y no solo de carga actual.
-
-Tareas:
-
-- guardar cada cambio de precio con fecha
-- mostrar precio actual y precio anterior
-- permitir ver evolucion de un producto
-- preparar el terreno para reportes o graficos
-
-Criterio de cierre:
-
-- cada producto conserva su historial
-- el semaforo se basa en informacion real y no en un dato aislado
-- la app empieza a sentirse como un producto util de verdad
-
-### Fase 8 - Alertas y reglas de negocio
-
-Objetivo: detectar subas importantes y mostrar avisos utiles.
-
-Tareas:
-
-- definir cuando una suba pasa de normal a importante
-- mostrar alertas visuales en el frontend
-- pensar alertas por porcentaje, frecuencia o proveedor
-- preparar el envio por email como mejora posterior
-
-Criterio de cierre:
-
-- el sistema detecta cambios relevantes automaticamente
-- las alertas tienen sentido de negocio
-- la funcionalidad agrega valor real y diferenciacion al proyecto
-
-### Fase 9 - Calidad y experiencia de usuario
-
-Objetivo: hacer que la app se sienta seria, estable y comoda de usar.
-
-Tareas:
-
-- mejorar mensajes de error y confirmacion
-- revisar accesibilidad basica
-- mejorar responsive design
-- ordenar estilos, nombres y estructura de carpetas
-- eliminar detalles que hagan ver el proyecto como incompleto
-
-Criterio de cierre:
-
-- la app se siente prolija y consistente
-- alguien mas puede usarla sin que vos expliques todo
-- la experiencia transmite madurez tecnica y atencion al detalle
-
-### Fase 10 - Testing y validacion
-
-Objetivo: aprender a comprobar que lo que construiste funciona de verdad.
-
-Tareas:
-
-- probar manualmente cada flujo importante
-- definir casos borde
-- agregar tests cuando tenga sentido
-- verificar que los calculos del semaforo sean correctos
-
-Criterio de cierre:
-
-- sabes que partes del sistema estan verificadas
-- los errores mas comunes se detectan rapido
-- podes defender la confiabilidad del proyecto en una entrevista
-
-### Fase 11 - Deploy y presentacion final
-
-Objetivo: dejar el proyecto listo para mostrar en portfolio o usar como base real.
-
-Tareas:
-
-- preparar una version desplegable
-- definir variables de entorno y configuracion
-- documentar instalacion y uso
-- mejorar README con capturas, flujo y decisiones tecnicas
-- preparar como contar el proyecto en CV, portfolio y entrevistas
-
-Criterio de cierre:
-
-- el proyecto puede ejecutarse fuera de tu maquina
-- tenes material para explicarlo en una entrevista o portfolio
-- SpyPrice se presenta como un proyecto profesional y competitivo
-
-## Estado actual
-
-Avance al 2026-04-26:
-
-- Fase 0 (estructura base): completada
-- Fase 1 (interfaz inicial en React): completada — Header, SummaryCards, FiltersBar, ProductsTable, AttentionPanel y ProductForm con CSS Modules
-- Fase 2 (estado y logica del frontend): en curso
-  - listo: `useState` y `useMemo` en App, calculo de variacion y semaforo, filtros por busqueda/categoria/estado
-  - listo: formulario de alta con validacion profesional (errores por campo, feedback en vivo despues del primer submit, borde rojo en inputs invalidos, reglas de negocio reales)
-  - pendiente: estado vacio en ProductsTable cuando los filtros no devuelven resultados
-  - pendiente: mensaje de exito al agregar un producto
-  - pendiente (refactor): mover `getStatus` y `getVariation` a `src/utils/pricing.js`
-
-Proximos pasos despues de cerrar Fase 2:
-
-1. Definir el modelo de datos (Fase 3).
-2. Construir el backend con FastAPI (Fase 4).
-3. Persistir con SQLite (Fase 5).
-4. Conectar frontend y backend (Fase 6).
-5. Historial, alertas y calidad (Fases 7 a 11).
-
-## Regla de trabajo
-
-Para mantener el aprendizaje como prioridad:
-
-- yo no voy a escribir codigo salvo que vos me lo pidas explicitamente
-- si queres, puedo explicarte primero la teoria y despues ayudarte a implementarla
-- tambien puedo revisar tu codigo, marcar mejoras y decirte el siguiente paso
-- si una decision no suma nivel profesional al portfolio, te lo voy a decir con claridad
-
-## Desarrollo del frontend
+### Frontend
 
 ```bash
 cd frontend
@@ -298,9 +147,55 @@ npm install
 npm run dev
 ```
 
+## Tests
+
+### Backend
+
+```bash
+cd backend
+.venv\Scripts\python -m pytest
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm test
+```
+
+## Deploy con Docker
+
+```bash
+docker compose up --build
+```
+
+Servicios:
+
+- Frontend: `http://localhost:4173`
+- Backend: `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
+
+## Decisiones tecnicas defendibles
+
+- El semaforo de precios se basa solo en variacion de precio, no en stock, porque el README lo define asi.
+- El stock bajo se trata como senal aparte para no mezclar riesgo de margen con riesgo operativo.
+- El historial de precios vive en tabla separada para soportar trazabilidad, reportes y futuras graficas.
+- El backend expone configuracion por entorno y una migracion liviana para evolucionar el esquema sin meter Alembic antes de tiempo.
+- El frontend usa utilidades compartidas para reglas y formato de fechas, evitando bugs tipicos de timezone con `YYYY-MM-DD`.
+
+## Validacion ejecutada
+
+Ultima validacion en este workspace, el `2026-07-07`:
+
+- `npm run build`
+- `npm test`
+- `.venv\Scripts\python -m pytest`
+- smoke test HTTP de alta, edicion, historial, alertas y borrado
+
 ## Autor
 
-**Gabriel Bertero** - Estudiante de Ingenieria en Sistemas, UTN Cordoba  
+**Gabriel Bertero**  
+Estudiante de Ingenieria en Sistemas, UTN Cordoba  
 [GitHub](https://github.com/gabibertero)
 
 ## Licencia
