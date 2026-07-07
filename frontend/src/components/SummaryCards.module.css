@@ -27,6 +27,7 @@
 .value {
   display: block;
   margin: 10px 0 6px;
+  font-family: var(--font-display);
   font-size: 2rem;
   line-height: 1;
 }

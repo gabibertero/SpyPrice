@@ -1,96 +1,62 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./App.module.css";
 import AttentionPanel from "./components/AttentionPanel";
 import FiltersBar from "./components/FiltersBar";
 import Header from "./components/Header";
+import HistoryModal from "./components/HistoryModal";
 import ProductForm from "./components/ProductForm";
 import ProductsTable from "./components/ProductsTable";
 import SummaryCards from "./components/SummaryCards";
+import * as api from "./services/api";
+import {
+  getStatus,
+  getVariation,
+  isCriticalStock,
+  isLowStock,
+} from "./utils/pricing";
 
-const initialProducts = [
-  {
-    id: 1,
-    name: "Yerba mate suave 1 kg",
-    category: "Almacen",
-    previousPrice: 4200,
-    currentPrice: 4650,
-    stock: 18,
-    lastRestock: "2026-04-23",
-  },
-  {
-    id: 2,
-    name: "Aceite girasol 900 ml",
-    category: "Despensa",
-    previousPrice: 3100,
-    currentPrice: 3100,
-    stock: 9,
-    lastRestock: "2026-04-20",
-  },
-  {
-    id: 3,
-    name: "Galletitas surtidas",
-    category: "Kiosco",
-    previousPrice: 1600,
-    currentPrice: 1760,
-    stock: 5,
-    lastRestock: "2026-04-18",
-  },
-  {
-    id: 4,
-    name: "Leche entera 1 l",
-    category: "Lacteos",
-    previousPrice: 1450,
-    currentPrice: 1540,
-    stock: 22,
-    lastRestock: "2026-04-25",
-  },
-  {
-    id: 5,
-    name: "Azucar 1 kg",
-    category: "Almacen",
-    previousPrice: 1200,
-    currentPrice: 1390,
-    stock: 4,
-    lastRestock: "2026-04-17",
-  },
-];
-
-function getVariation(previousPrice, currentPrice) {
-  return ((currentPrice - previousPrice) / previousPrice) * 100;
-}
-
-function getStatus(product) {
-  const variation = getVariation(product.previousPrice, product.currentPrice);
-
-  if (product.stock <= 5 || variation > 10) {
-    return {
-      tone: "critical",
-      label: "Critico",
-      variation,
-    };
-  }
-
-  if (variation > 0) {
-    return {
-      tone: "warning",
-      label: "Atencion",
-      variation,
-    };
-  }
-
-  return {
-    tone: "stable",
-    label: "Estable",
-    variation,
-  };
+function getRestockTime(value) {
+  return new Date(`${value}T12:00:00`).getTime();
 }
 
 export default function App() {
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todas");
   const [status, setStatus] = useState("Todos");
   const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [historyProduct, setHistoryProduct] = useState(null);
+  const [sendingReport, setSendingReport] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  useEffect(() => {
+    if (!toast) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => setToast(null), 3500);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  async function loadProducts() {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const data = await api.getProducts();
+      setProducts(data);
+    } catch (cause) {
+      setLoadError(cause.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const categories = useMemo(() => {
     const uniqueCategories = new Set(products.map((product) => product.category));
@@ -99,9 +65,11 @@ export default function App() {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesSearch = product.name
-        .toLowerCase()
-        .includes(search.trim().toLowerCase());
+      const searchValue = search.trim().toLowerCase();
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchValue) ||
+        product.supplier.toLowerCase().includes(searchValue) ||
+        product.category.toLowerCase().includes(searchValue);
       const matchesCategory =
         category === "Todas" || product.category === category;
       const productStatus = getStatus(product).label;
@@ -112,10 +80,11 @@ export default function App() {
   }, [category, products, search, status]);
 
   const summary = useMemo(() => {
+    const supplierCount = new Set(products.map((product) => product.supplier)).size;
     const increasedProducts = products.filter(
       (product) => getVariation(product.previousPrice, product.currentPrice) > 0
     ).length;
-    const lowStockProducts = products.filter((product) => product.stock <= 8).length;
+    const lowStockProducts = products.filter((product) => isLowStock(product.stock)).length;
     const criticalProducts = products.filter(
       (product) => getStatus(product).label === "Critico"
     ).length;
@@ -127,25 +96,29 @@ export default function App() {
         detail: "Catalogo cargado en el sistema",
       },
       {
+        label: "Proveedores activos",
+        value: supplierCount,
+        detail: "Canales de compra monitoreados en la app",
+      },
+      {
         label: "Productos con aumento",
         value: increasedProducts,
-        detail: "Cambios detectados frente al ultimo precio",
+        detail: `${criticalProducts} con alerta critica por precio`,
       },
       {
         label: "Stock bajo",
         value: lowStockProducts,
         detail: "Productos que conviene reponer pronto",
       },
-      {
-        label: "Productos criticos",
-        value: criticalProducts,
-        detail: "Requieren atencion prioritaria hoy",
-      },
     ];
   }, [products]);
 
   const attentionItems = useMemo(() => {
-    const byVariation = [...products]
+    const byVariation = products
+      .filter(
+        (product) => getVariation(product.previousPrice, product.currentPrice) > 0
+      )
+      .slice()
       .sort(
         (first, second) =>
           getVariation(second.previousPrice, second.currentPrice) -
@@ -154,14 +127,14 @@ export default function App() {
       .slice(0, 3);
 
     const lowStock = products
-      .filter((product) => product.stock <= 8)
+      .filter((product) => isLowStock(product.stock))
       .sort((first, second) => first.stock - second.stock)
       .slice(0, 3);
 
     const reviewToday = [...products]
       .sort(
         (first, second) =>
-          new Date(first.lastRestock).getTime() - new Date(second.lastRestock).getTime()
+          getRestockTime(first.lastRestock) - getRestockTime(second.lastRestock)
       )
       .slice(0, 3);
 
@@ -172,20 +145,112 @@ export default function App() {
     };
   }, [products]);
 
-  function handleAddProduct(product) {
-    setProducts((currentProducts) => [
-      {
-        id: crypto.randomUUID(),
-        ...product,
-      },
-      ...currentProducts,
-    ]);
+  function openCreateForm() {
+    setEditingProduct(null);
+    setShowProductForm(true);
+  }
+
+  function closeProductForm() {
+    setEditingProduct(null);
     setShowProductForm(false);
+  }
+
+  function handleToggleForm() {
+    if (showProductForm) {
+      closeProductForm();
+      return;
+    }
+
+    openCreateForm();
+  }
+
+  function handleStartEdit(product) {
+    setEditingProduct(product);
+    setShowProductForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function handleCreateProduct(product) {
+    const created = await api.createProduct(product);
+    setProducts((currentProducts) => [created, ...currentProducts]);
+    setShowProductForm(false);
+    setToast({ tone: "success", message: `"${created.name}" se agrego al catalogo.` });
+  }
+
+  async function handleEditProduct(product) {
+    if (!editingProduct) {
+      return;
+    }
+
+    const updated = await api.updateProduct(editingProduct.id, product);
+    setProducts((currentProducts) =>
+      currentProducts.map((item) => (item.id === updated.id ? updated : item))
+    );
+    closeProductForm();
+    setToast({ tone: "success", message: `"${updated.name}" se actualizo.` });
+  }
+
+  async function handleUpdatePrice(productId, currentPrice) {
+    const updated = await api.updatePrice(productId, currentPrice);
+    setProducts((currentProducts) =>
+      currentProducts.map((product) =>
+        product.id === updated.id ? updated : product
+      )
+    );
+    setHistoryProduct(updated);
+    setToast({ tone: "success", message: `Precio de "${updated.name}" actualizado.` });
+  }
+
+  async function handleDeleteProduct(product) {
+    const confirmed = window.confirm(
+      `Eliminar "${product.name}" y todo su historial de precios?`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await api.deleteProduct(product.id);
+      setProducts((currentProducts) =>
+        currentProducts.filter((item) => item.id !== product.id)
+      );
+      setToast({ tone: "success", message: `"${product.name}" se elimino.` });
+    } catch (cause) {
+      setToast({ tone: "error", message: cause.message });
+    }
+  }
+
+  async function handleSendReport() {
+    setSendingReport(true);
+    try {
+      const report = await api.sendAlertsReport();
+      setToast({
+        tone: "success",
+        message: `Reporte enviado a ${report.recipient}.`,
+      });
+    } catch (cause) {
+      setToast({ tone: "error", message: cause.message });
+    } finally {
+      setSendingReport(false);
+    }
   }
 
   return (
     <div className={styles.shell}>
-      <main className={styles.app}>
+      <a className={styles.skipLink} href="#dashboard">
+        Saltar al contenido
+      </a>
+
+      {toast ? (
+        <div
+          className={`${styles.toast} ${toast.tone === "error" ? styles.toastError : ""}`}
+          role="status"
+        >
+          {toast.message}
+        </div>
+      ) : null}
+
+      <main className={styles.app} id="dashboard">
         <Header />
 
         <section className={styles.hero}>
@@ -209,26 +274,103 @@ export default function App() {
           </div>
         </section>
 
-        <SummaryCards items={summary} />
+        {loading ? (
+          <section className={styles.stateCard}>
+            <p>Cargando productos...</p>
+          </section>
+        ) : loadError ? (
+          <section className={styles.stateCard}>
+            <p className={styles.stateError}>{loadError}</p>
+            <button
+              className={styles.retryButton}
+              type="button"
+              onClick={loadProducts}
+            >
+              Reintentar
+            </button>
+          </section>
+        ) : (
+          <>
+            <SummaryCards items={summary} />
 
-        <FiltersBar
-          categories={categories}
-          search={search}
-          category={category}
-          status={status}
-          onSearchChange={setSearch}
-          onCategoryChange={setCategory}
-          onStatusChange={setStatus}
-          onToggleForm={() => setShowProductForm((currentValue) => !currentValue)}
-          showProductForm={showProductForm}
-        />
+            <FiltersBar
+              categories={categories}
+              search={search}
+              category={category}
+              status={status}
+              formMode={editingProduct ? "edit" : "create"}
+              onSearchChange={setSearch}
+              onCategoryChange={setCategory}
+              onStatusChange={setStatus}
+              onToggleForm={handleToggleForm}
+              showProductForm={showProductForm}
+            />
 
-        {showProductForm ? <ProductForm onAddProduct={handleAddProduct} /> : null}
+            {showProductForm ? (
+              <section id="catalogo">
+                <ProductForm
+                  mode={editingProduct ? "edit" : "create"}
+                  initialProduct={editingProduct}
+                  onSubmitProduct={
+                    editingProduct ? handleEditProduct : handleCreateProduct
+                  }
+                  onCancel={closeProductForm}
+                />
+              </section>
+            ) : (
+              <div id="catalogo" />
+            )}
 
-        <ProductsTable products={filteredProducts} getStatus={getStatus} />
+            <ProductsTable
+              products={filteredProducts}
+              getStatus={getStatus}
+              isLowStock={isLowStock}
+              isCriticalStock={isCriticalStock}
+              onEdit={handleStartEdit}
+              onOpenHistory={setHistoryProduct}
+              onDelete={handleDeleteProduct}
+            />
 
-        <AttentionPanel items={attentionItems} getStatus={getStatus} />
+            <AttentionPanel
+              items={attentionItems}
+              getStatus={getStatus}
+              onSendReport={handleSendReport}
+              sendingReport={sendingReport}
+            />
+
+            <footer className={styles.footer} id="recursos">
+              <div>
+                <p className={styles.footerLabel}>Stack y trazabilidad</p>
+                <p className={styles.footerText}>
+                  React + Vite en frontend, FastAPI + SQLite en backend, historial
+                  de precios persistente y reportes SMTP opcionales.
+                </p>
+              </div>
+
+              <div className={styles.footerLinks}>
+                <a href={`${api.API_URL}/docs`} rel="noreferrer" target="_blank">
+                  Swagger
+                </a>
+                <a
+                  href="https://github.com/gabibertero/SpyPrice"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  GitHub
+                </a>
+              </div>
+            </footer>
+          </>
+        )}
       </main>
+
+      {historyProduct ? (
+        <HistoryModal
+          product={historyProduct}
+          onClose={() => setHistoryProduct(null)}
+          onUpdatePrice={handleUpdatePrice}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,0 +1,211 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(47, 36, 31, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  width: min(520px, 100%);
+  max-height: min(640px, 90vh);
+  overflow-y: auto;
+  padding: 26px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-soft);
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.kicker {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+}
+
+.meta {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.closeButton {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-soft);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.priceForm {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.priceField {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.priceInput {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--text-main);
+}
+
+.priceInput:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.priceButton {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.priceButton:hover {
+  background: var(--accent-dark);
+}
+
+.priceButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.errorText {
+  margin: 4px 0 10px;
+  color: var(--critical);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.loading {
+  color: var(--text-soft);
+}
+
+.sparkline {
+  width: 100%;
+  height: auto;
+  margin: 14px 0 8px;
+  border: 1px solid rgba(90, 63, 49, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 249, 242, 0.7);
+}
+
+.list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 4px;
+  border-bottom: 1px solid rgba(90, 63, 49, 0.08);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.itemDate {
+  min-width: 140px;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.itemPrice {
+  flex: 1;
+  font-weight: 700;
+}
+
+.itemVariation {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.up {
+  background: rgba(184, 80, 66, 0.14);
+  color: var(--critical);
+}
+
+.down {
+  background: rgba(84, 120, 95, 0.14);
+  color: var(--stable);
+}
+
+.flat {
+  background: rgba(122, 104, 94, 0.12);
+  color: var(--text-soft);
+}
+
+@media (max-width: 720px) {
+  .modal {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .priceForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

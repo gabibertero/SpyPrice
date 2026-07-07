@@ -7,6 +7,7 @@ export default function FiltersBar({
   search,
   category,
   status,
+  formMode,
   onSearchChange,
   onCategoryChange,
   onStatusChange,
@@ -26,7 +27,7 @@ export default function FiltersBar({
           <input
             className={styles.input}
             type="search"
-            placeholder="Ej. yerba, leche, azucar..."
+            placeholder="Ej. yerba, lacteos del valle, azucar..."
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
           />
@@ -63,7 +64,11 @@ export default function FiltersBar({
         </label>
 
         <button className={styles.button} type="button" onClick={onToggleForm}>
-          {showProductForm ? "Ocultar formulario" : "Agregar producto"}
+          {showProductForm
+            ? formMode === "edit"
+              ? "Cancelar edicion"
+              : "Ocultar formulario"
+            : "Agregar producto"}
         </button>
       </div>
     </section>

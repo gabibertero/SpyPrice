@@ -1,6 +1,11 @@
 import styles from "./Header.module.css";
 
-const navigationItems = ["Home", "Productos", "Analisis", "Sobre SpyPrice"];
+const navigationItems = [
+  { label: "Panel", href: "#dashboard" },
+  { label: "Productos", href: "#catalogo" },
+  { label: "Alertas", href: "#atencion" },
+  { label: "Docs", href: "#recursos" },
+];
 
 export default function Header() {
   return (
@@ -18,11 +23,15 @@ export default function Header() {
       <nav className={styles.topnav} aria-label="Secciones principales">
         {navigationItems.map((item) => (
           <a
-            className={item === "Home" ? `${styles.navLink} ${styles.active}` : styles.navLink}
-            href="/"
-            key={item}
+            className={
+              item.href === "#dashboard"
+                ? `${styles.navLink} ${styles.active}`
+                : styles.navLink
+            }
+            href={item.href}
+            key={item.href}
           >
-            {item}
+            {item.label}
           </a>
         ))}
       </nav>
